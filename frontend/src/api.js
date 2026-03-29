@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const api = axios.create({
-  baseURL: '/api', // Using Vite Proxy
+  baseURL: import.meta.env.VITE_API_URL || '/api', // Safe fallback for Vercel Monorepo routing
 });
 
 api.interceptors.request.use(
