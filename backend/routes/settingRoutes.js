@@ -24,6 +24,11 @@ router.put('/', protect, admin, async (req, res) => {
       return res.json(setting);
     }
     
+    // Prevent Mongoose immutable _id path modification error
+    if (req.body._id) {
+      delete req.body._id;
+    }
+    
     Object.assign(setting, req.body);
     const updatedSetting = await setting.save();
     res.json(updatedSetting);
