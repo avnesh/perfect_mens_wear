@@ -80,7 +80,7 @@ const Home = () => {
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">{product.category?.name}</p>
                 </div>
-                <p className="text-sm font-semibold text-gray-900">${product.price}</p>
+                <p className="text-sm font-semibold text-gray-900">₹{product.price}</p>
               </div>
             </Link>
           ))}

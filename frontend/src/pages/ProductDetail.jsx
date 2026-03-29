@@ -41,7 +41,7 @@ const ProductDetail = () => {
   if (!product) return <div className="text-center py-20">Product not found</div>;
 
   const wpNumber = settings?.whatsappNumber?.replace(/\D/g, '') || '';
-  const wpText = encodeURIComponent(`Hi, I want to order ${product.name} (Size: ${selectedSize}) for $${product.price}`);
+  const wpText = encodeURIComponent(`Hi, I want to order ${product.name} (Size: ${selectedSize}) for ₹${product.price}`);
   const wpLink = `https://wa.me/${wpNumber}?text=${wpText}`;
 
   return (
@@ -74,8 +74,7 @@ const ProductDetail = () => {
         <div className="mt-10 px-4 sm:px-0 lg:mt-0">
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">{product.name}</h1>
           <div className="mt-3">
-            <h2 className="sr-only">Product information</h2>
-            <p className="text-3xl text-purple-600 font-bold">${product.price}</p>
+            <p className="text-3xl text-purple-600 font-bold">₹{product.price}</p>
           </div>
 
           <div className="mt-6 border-y border-gray-200 py-6">

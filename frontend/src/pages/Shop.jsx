@@ -227,7 +227,7 @@ const Shop = () => {
                           </div>
                         )}
                       </div>
-                      <p className="mt-3 text-lg text-purple-600 font-bold">₹{product.price}</p>
+                      <p className="text-lg font-bold text-gray-900 mt-1">₹{product.price}</p>
                     </div>
                   </Link>
                 ))}

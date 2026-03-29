@@ -168,7 +168,7 @@ const Products = () => {
                   <img src={p.images[0]} alt="" className="w-12 h-12 object-cover rounded" />
                   <span className="font-medium text-gray-900">{p.name} {p.isFeatured && '(Featured)'}</span>
                 </td>
-                <td className="px-6 py-4">${p.price}</td>
+                <td className="px-6 py-4">₹{p.price}</td>
                 <td className="px-6 py-4">{p.category?.name}</td>
                 <td className="px-6 py-4 text-right">
                   <button onClick={() => {

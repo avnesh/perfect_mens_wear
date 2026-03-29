@@ -112,7 +112,7 @@ const Checkout = () => {
               {cart.map((item, idx) => (
                 <div key={idx} className="flex gap-4 border-b pb-4">
                   <div className="w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                    <img src={item.image || '/placeholder.png'} alt={item.name} className="w-full h-full object-cover" />
+                    <img src={(item.images && item.images[0]) || 'https://via.placeholder.com/150'} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800">{item.name}</h3>
