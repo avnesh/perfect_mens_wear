@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
@@ -9,12 +9,19 @@ const Checkout = () => {
   const { cart, removeFromCart, updateQty, clearCart } = useCart();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [waNumber, setWaNumber] = useState('919988776655');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     address: '',
     pincode: '',
   });
+
+  useEffect(() => {
+    api.get('/settings')
+      .then(({ data }) => { if (data?.whatsappNumber) setWaNumber(data.whatsappNumber); })
+      .catch(() => {});
+  }, []);
 
   const totalAmount = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
@@ -62,7 +69,7 @@ const Checkout = () => {
     if(formData.name) text += `*Name:* ${formData.name}%0A`;
     if(formData.address) text += `*Address:* ${formData.address}, ${formData.pincode}%0A`;
     
-    window.open(`https://wa.me/919892843211?text=${text}`, '_blank');
+    window.open(`https://wa.me/${waNumber}?text=${text}`, '_blank');
   };
 
   if (cart.length === 0) {

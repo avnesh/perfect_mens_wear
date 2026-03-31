@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, SlidersHorizontal } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import SEO from '../components/SEO';
+import ProductCard from '../components/ProductCard';
+import Pagination from '../components/Pagination';
 import api from '../api';
 
 const Shop = () => {
@@ -10,13 +12,22 @@ const Shop = () => {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
+  const [searchParams] = useSearchParams();
+
   // Filters State
-  const [searchQuery, setSearchQuery] = useState('');
+  // Initialize searchQuery from URL param (?search=) set by Navbar
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [brand, setBrand] = useState('');
   const [size, setSize] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+
+  // Sync URL ?search= param into searchQuery state on every navigation
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') || '';
+    setSearchQuery(urlSearch);
+  }, [searchParams]);
   
   // Pagination State
   const [page, setPage] = useState(1);
@@ -59,7 +70,6 @@ const Shop = () => {
   };
 
   useEffect(() => {
-    // Reset to page 1 if any filter other than page changes
     setPage(1);
   }, [searchQuery, selectedCategory, brand, size, minPrice, maxPrice]);
 
@@ -80,192 +90,152 @@ const Shop = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+    <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-8 md:py-16 bg-white mix-blend-normal">
       <SEO 
-        title="Shop Collection" 
-        description="Browse our extensive collection of Men's clothing, from classic shirts to innerwear." 
+        title="Gallery | Premium Fashion" 
+        description="Browse our extensive collection of premium clothing." 
       />
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Shop All ({totalItems})</h1>
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-gray-200 pb-6 gap-4">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-display font-black text-theme-black uppercase tracking-tight">Complete Gallery</h1>
+          <p className="mt-2 text-gray-400 font-medium">Showing {totalItems} items</p>
+        </div>
         <button 
-          className="md:hidden flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg font-medium"
+          className="md:hidden flex items-center justify-center gap-2 bg-theme-black text-white px-6 py-3 font-bold uppercase tracking-widest w-full hover:bg-theme-yellow hover:text-theme-black transition-colors"
           onClick={() => setShowFilters(!showFilters)}
         >
-          <Filter size={20} /> Filters
+          <SlidersHorizontal size={18} /> Filters
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-12">
         {/* Filters Sidebar */}
-        <div className={`md:w-64 flex-shrink-0 ${showFilters ? 'block' : 'hidden md:block'}`}>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold flex items-center gap-2"><Filter size={18} /> Filters</h2>
-              {showFilters && <button onClick={() => setShowFilters(false)} className="md:hidden text-gray-500"><X size={20} /></button>}
+        <div className={`lg:w-72 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <div className="sticky top-28 space-y-8 pr-4">
+            <div className="flex items-center justify-between lg:hidden mb-6 border-b pb-4">
+              <h2 className="text-xl font-display font-black uppercase tracking-widest"><Filter size={20} className="inline mr-2" /> Filters</h2>
+              <button onClick={() => setShowFilters(false)} className="text-theme-black"><X size={24} /></button>
             </div>
 
-            <div className="space-y-6">
-              {/* Search */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    className="pl-9 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-purple-500 text-sm bg-white"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((c) => (
-                    <option key={c._id} value={c._id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Brand */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+            {/* Search */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
-                  placeholder="e.g. US Polo"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-purple-500 text-sm"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
+                  placeholder="Find products..."
+                  className="pl-10 pr-4 py-3 w-full border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-theme-black focus:ring-0 transition-colors text-sm font-medium outline-none"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-
-              {/* Size */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
-                <select
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-purple-500 text-sm bg-white"
-                  value={size}
-                  onChange={(e) => setSize(e.target.value)}
-                >
-                  <option value="">Any Size</option>
-                  {['S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36'].map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Price Range */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-purple-500 text-sm"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                  />
-                  <span className="text-gray-400">-</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-purple-500 text-sm"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <button 
-                onClick={clearFilters}
-                className="w-full text-purple-600 hover:text-purple-700 text-sm font-medium pt-2 transition"
-              >
-                Clear All Filters
-              </button>
             </div>
+
+            {/* Category */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Category</label>
+              <select
+                className="w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-theme-black focus:ring-0 transition-colors text-sm font-medium outline-none cursor-pointer appearance-none rounded-none"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23333' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1em' }}
+              >
+                <option value="">All Categories</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Brand */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Brand</label>
+              <input
+                type="text"
+                placeholder="e.g. US Polo"
+                className="w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-theme-black focus:ring-0 transition-colors text-sm font-medium outline-none"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+              />
+            </div>
+
+            {/* Size */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Size</label>
+              <div className="flex flex-wrap gap-2">
+                {['S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setSize(size === s ? '' : s)}
+                    className={`h-10 w-12 border-2 text-xs font-bold transition-colors ${
+                      size === s ? 'border-theme-black bg-theme-black text-white' : 'border-gray-100 text-gray-500 hover:border-theme-black hover:text-theme-black'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Price Range</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  className="w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-theme-black focus:ring-0 transition-colors text-sm font-medium outline-none text-center"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                />
+                <span className="text-gray-300 font-bold">-</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  className="w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-theme-black focus:ring-0 transition-colors text-sm font-medium outline-none text-center"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <button 
+              onClick={clearFilters}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-theme-black py-4 text-xs font-bold uppercase tracking-widest transition-colors mt-8"
+            >
+              Reset Filters
+            </button>
           </div>
         </div>
 
         {/* Product Grid */}
         <div className="flex-1">
           {loading ? (
-            <div className="flex justify-center py-32"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div></div>
+            <div className="flex justify-center items-center h-64">
+               <div className="w-12 h-12 border-4 border-theme-yellow border-t-theme-black rounded-full animate-spin"></div>
+            </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map((product) => (
-                  <Link key={product._id} to={`/product/${product._id}`} className="group relative bg-white p-3 rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-50 flex flex-col">
-                    <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-gray-100 flex-shrink-0 relative">
-                      {product.brand && (
-                        <div className="absolute top-2 left-2 z-10 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-gray-800 shadow-sm border border-gray-100/50">
-                          {product.brand}
-                        </div>
-                      )}
-                      <img
-                        src={product.images[0] || 'https://via.placeholder.com/300'}
-                        alt={product.name}
-                        className="h-full w-full object-cover object-center group-hover:scale-105 transition duration-500"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="mt-4 px-2 flex-col flex-1 flex justify-between">
-                      <div>
-                        <h3 className="text-md text-gray-900 font-semibold line-clamp-2 leading-tight">
-                          {product.name}
-                        </h3>
-                        {product.sizes && product.sizes.length > 0 && (
-                          <div className="flex gap-1 mt-2 flex-wrap text-xs text-gray-500">
-                            Sizes: {product.sizes.join(', ')}
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-lg font-bold text-gray-900 mt-1">₹{product.price}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              
-              {products.length === 0 && (
-                <div className="text-center py-32 text-gray-500 bg-white rounded-2xl border border-gray-100">
+              {products.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-6 gap-y-12">
+                  {products.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-32 bg-gray-50 border-2 border-dashed border-gray-200">
                   <div className="mb-4 flex justify-center"><Search className="text-gray-300" size={48} /></div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No matching products</h3>
-                  <p>Try adjusting your search or filters to find what you're looking for.</p>
-                  <button onClick={clearFilters} className="mt-6 bg-purple-100 text-purple-700 px-6 py-2 rounded-lg font-medium hover:bg-purple-200 transition">
+                  <h3 className="text-xl font-display font-black text-gray-900 mb-2 uppercase">No matches found</h3>
+                  <p className="text-gray-500 font-medium">Try adjusting your filters to find what you're looking for.</p>
+                  <button onClick={clearFilters} className="mt-8 bg-theme-black text-theme-yellow px-8 py-4 font-bold uppercase tracking-widest hover:bg-theme-yellow hover:text-theme-black transition">
                     Clear Filters
                   </button>
                 </div>
               )}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-12 bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-max mx-auto">
-                  <button 
-                    disabled={page === 1} 
-                    onClick={() => setPage(p => p - 1)} 
-                    className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-purple-600 disabled:opacity-50 transition font-medium"
-                  >
-                    Previous
-                  </button>
-                  <div className="text-sm font-medium text-gray-600">
-                    Page <span className="text-gray-900 font-bold">{page}</span> of <span className="font-bold">{totalPages}</span>
-                  </div>
-                  <button 
-                    disabled={page === totalPages} 
-                    onClick={() => setPage(p => p + 1)} 
-                    className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-purple-600 disabled:opacity-50 transition font-medium"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
             </>
           )}
         </div>

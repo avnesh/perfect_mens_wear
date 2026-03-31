@@ -1,187 +1,223 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import { toast } from 'react-toastify';
-import { Plus, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const PAGE_SIZE = 10;
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  
-  // Form State
-  const [isEditing, setIsEditing] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ _id: '', name: '', brand: '', price: 0, description: '', category: '', sizes: '', isFeatured: false });
-  const [files, setFiles] = useState(null);
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [page, setPage]               = useState(1);
+  const [search, setSearch]           = useState('');
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const [pRes, cRes] = await Promise.all([api.get('/products?limit=1000'), api.get('/categories')]);
-      setProducts(pRes.data.products);
-      setCategories(cRes.data);
-    } catch (error) { toast.error("Error fetching data"); }
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      let imageUrls = [];
-      if (files && files.length > 0) {
-        const formData = new FormData();
-        Array.from(files).forEach(file => formData.append('images', file));
-        const uploadRes = await api.post('/gallery/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        imageUrls = uploadRes.data.urls;
-      }
-
-      const payload = {
-        name: form.name,
-        brand: form.brand,
-        price: Number(form.price),
-        description: form.description,
-        category: form.category,
-        sizes: form.sizes.split(',').map(s => s.trim()),
-        isFeatured: form.isFeatured
-      };
-
-      if (!isEditing && imageUrls.length === 0) {
-        toast.error('At least 1 image is required for new products.');
-        setLoading(false);
-        return;
-      }
-
-      if (imageUrls.length > 0) payload.images = imageUrls;
-
-      if (isEditing) {
-        await api.put(`/products/${form._id}`, payload);
-        toast.success('Product updated');
-      } else {
-        await api.post('/products', payload);
-        toast.success('Product added');
-      }
-
-      setShowForm(false);
-      resetForm();
-      fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error saving product');
+      setLoading(true);
+      const res = await api.get('/products?limit=1000');
+      setAllProducts(res.data.products || []);
+      setPage(1);
+    } catch {
+      toast.error('Error fetching products');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure?")) {
-      try {
-        await api.delete(`/products/${id}`);
-        toast.success("Product deleted");
-        fetchData();
-      } catch (error) { toast.error("Error deleting"); }
-    }
+    if (!window.confirm('Delete this product permanently?')) return;
+    try {
+      await api.delete(`/products/${id}`);
+      toast.success('Product deleted');
+      fetchData();
+    } catch { toast.error('Delete failed'); }
   };
 
-  const resetForm = () => {
-    setForm({ _id: '', name: '', brand: '', price: 0, description: '', category: '', sizes: '', isFeatured: false });
-    setFiles(null);
-    setIsEditing(false);
+  /* ── Filter + paginate ── */
+  const filtered    = allProducts.filter(p =>
+    !search || p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.brand?.toLowerCase().includes(search.toLowerCase()) ||
+    p.category?.name?.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage    = Math.min(page, totalPages);
+  const pageItems   = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const handleSearch = (val) => { setSearch(val); setPage(1); };
+
+  /* ── Pagination page numbers with ellipsis ── */
+  const getPageNums = () => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pages = new Set([1, totalPages, safePage, safePage - 1, safePage + 1].filter(n => n >= 1 && n <= totalPages));
+    return [...pages].sort((a, b) => a - b).reduce((acc, n, i, arr) => {
+      if (i > 0 && arr[i - 1] !== n - 1) acc.push('…');
+      acc.push(n);
+      return acc;
+    }, []);
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Manage Products</h1>
-        <button 
-          onClick={() => { resetForm(); setShowForm(!showForm); }}
-          className="bg-purple-600 text-white px-4 py-2 rounded-xl flex items-center gap-2"
+    <div className="max-w-[1400px] animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
+        <div>
+          <h1 className="text-4xl font-display font-black text-theme-black uppercase tracking-tight">Product Catalog</h1>
+          <p className="mt-1 text-gray-400 font-medium">{allProducts.length} products total</p>
+        </div>
+        <button
+          onClick={() => navigate('/admin/products/new')}
+          className="bg-theme-black text-theme-yellow px-8 py-4 flex items-center gap-3 font-black uppercase tracking-widest border-2 border-theme-black hover:bg-theme-yellow hover:text-theme-black transition-colors"
         >
-          <Plus size={20} /> Add Product
+          <Plus size={20} strokeWidth={3} /> Add Product
         </button>
       </div>
 
-      {showForm && (
-        <form onSubmit={handleSave} className="bg-white p-6 rounded-2xl shadow-sm mb-8 space-y-4 border border-gray-100">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Name</label>
-              <input required type="text" className="w-full border rounded p-2" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Brand</label>
-              <input type="text" className="w-full border rounded p-2" value={form.brand} onChange={e=>setForm({...form, brand: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Price</label>
-              <input required type="number" step="0.01" className="w-full border rounded p-2" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
-              <select required className="w-full border rounded p-2" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}>
-                <option value="">Select Category</option>
-                {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Sizes (comma separated)</label>
-              <input required type="text" placeholder="S, M, L, XL" className="w-full border rounded p-2" value={form.sizes} onChange={e=>setForm({...form, sizes: e.target.value})} />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea required className="w-full border rounded p-2 h-24" value={form.description} onChange={e=>setForm({...form, description: e.target.value})} />
-          </div>
-          <div>
-             <label className="flex items-center gap-2">
-               <input type="checkbox" checked={form.isFeatured} onChange={e=>setForm({...form, isFeatured: e.target.checked})} />
-               Featured Product (shows on home page)
-             </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Images (Select Multiple)</label>
-            <input type="file" multiple accept="image/*" onChange={e=>setFiles(e.target.files)} className="w-full border rounded p-2" />
-          </div>
-          <button type="submit" disabled={loading} className="bg-purple-600 text-white px-6 py-2 rounded-xl font-medium">
-            {loading ? 'Saving...' : 'Save Product'}
-          </button>
-        </form>
-      )}
+      {/* Search bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by name, brand or category…"
+          value={search}
+          onChange={e => handleSearch(e.target.value)}
+          className="w-full md:w-80 border-2 border-gray-200 px-4 py-3 bg-gray-50 focus:bg-white focus:border-theme-black outline-none text-sm font-medium transition-colors"
+        />
+        {search && (
+          <span className="ml-3 text-xs text-gray-400 font-bold uppercase tracking-widest">
+            {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {products.map(p => (
-              <tr key={p._id}>
-                <td className="px-6 py-4 flex items-center gap-4">
-                  <img src={p.images[0]} alt="" className="w-12 h-12 object-cover rounded" />
-                  <span className="font-medium text-gray-900">{p.name} {p.isFeatured && '(Featured)'}</span>
-                </td>
-                <td className="px-6 py-4">₹{p.price}</td>
-                <td className="px-6 py-4">{p.category?.name}</td>
-                <td className="px-6 py-4 text-right">
-                  <button onClick={() => {
-                    setForm({ ...p, sizes: p.sizes?.join(', ') || '', category: p.category?._id || '' });
-                    setIsEditing(true);
-                    setShowForm(true);
-                  }} className="text-blue-600 hover:text-blue-900 mx-2"><Edit2 size={18} /></button>
-                  <button onClick={() => handleDelete(p._id)} className="text-red-600 hover:text-red-900 mx-2"><Trash2 size={18} /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Table */}
+      <div className="bg-white border-2 border-gray-200">
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="text-center py-24 text-gray-400 font-black uppercase tracking-widest animate-pulse">
+              Loading…
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b-2 border-gray-200">
+                  <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest">Product</th>
+                  <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest">Price</th>
+                  <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest">Category</th>
+                  <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {pageItems.map((p, index) => (
+                  <tr key={p._id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-18 bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0" style={{ aspectRatio: '3/4' }}>
+                          <img
+                            src={p.images?.[0]}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={e => { e.target.src = 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&q=60'; }}
+                          />
+                        </div>
+                        <div>
+                          <p className="font-black text-theme-black text-sm uppercase leading-snug">{p.name}</p>
+                          {p.brand && <p className="text-xs text-gray-400 font-bold mt-0.5">{p.brand}</p>}
+                          {p.isFeatured && (
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-theme-yellow text-theme-black text-[9px] font-black tracking-widest uppercase">
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-black text-theme-black">₹{p.price}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-gray-500 uppercase tracking-wide">
+                      {p.category?.name || '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/admin/products/edit/${p._id}`)}
+                          className="p-2.5 text-gray-400 border-2 border-transparent hover:border-theme-black hover:text-theme-black bg-white shadow-sm transition-all"
+                          title="Edit"
+                        >
+                          <Edit2 size={15} strokeWidth={3} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(p._id)}
+                          className="p-2.5 text-red-400 border-2 border-transparent hover:border-red-500 hover:text-red-600 hover:bg-red-50 bg-white shadow-sm transition-all"
+                          title="Delete"
+                        >
+                          <Trash2 size={15} strokeWidth={3} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {pageItems.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-16 text-center">
+                      <p className="text-gray-400 font-bold uppercase tracking-widest mb-4">
+                        {search ? `No products match "${search}"` : 'No products yet.'}
+                      </p>
+                      {!search && (
+                        <button
+                          onClick={() => navigate('/admin/products/new')}
+                          className="bg-theme-black text-theme-yellow px-6 py-3 font-bold uppercase tracking-widest"
+                        >
+                          Add First Product
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Pagination bar — inside the table card */}
+        {!loading && totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <p className="text-xs text-gray-400 font-black uppercase tracking-widest">
+              Page {safePage} of {totalPages} · showing {pageItems.length} of {filtered.length}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+                className="flex items-center px-3 py-2 border-2 border-gray-200 text-xs font-black uppercase hover:border-theme-black disabled:opacity-30 transition"
+              >
+                <ChevronLeft size={14} /> Prev
+              </button>
+
+              {getPageNums().map((n, i) =>
+                n === '…' ? (
+                  <span key={`e-${i}`} className="px-2 text-gray-400 font-black">…</span>
+                ) : (
+                  <button
+                    key={n}
+                    onClick={() => setPage(n)}
+                    className={`w-9 h-9 text-xs font-black border-2 transition ${n === safePage ? 'bg-theme-black text-theme-yellow border-theme-black' : 'border-gray-200 hover:border-theme-black'}`}
+                  >
+                    {n}
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={safePage === totalPages}
+                className="flex items-center px-3 py-2 border-2 border-gray-200 text-xs font-black uppercase hover:border-theme-black disabled:opacity-30 transition"
+              >
+                Next <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
