@@ -59,7 +59,8 @@ const AnimatedRoutes = () => {
             <AdminLayout />
           </ProtectedRoute>
         }>
-          <Route index element={<AnimatePage><Dashboard /></AnimatePage>} />
+          <Route index element={<Navigate to="/admin/products" replace />} />
+          <Route path="dashboard" element={<AnimatePage><Dashboard /></AnimatePage>} />
           <Route path="products" element={<AnimatePage><Products /></AnimatePage>} />
           <Route path="products/new" element={<AnimatePage><ProductForm /></AnimatePage>} />
           <Route path="products/edit/:id" element={<AnimatePage><ProductForm /></AnimatePage>} />

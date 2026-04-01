@@ -44,12 +44,13 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         </div>
         
         <nav className="flex-1 py-6 space-y-1 font-bold text-sm tracking-wide uppercase">
-          <NavLink to="/admin" end className={navClass} onClick={() => window.innerWidth < 1024 && onClose()}>
+          {/* Dashboard and Orders commented out as requested */}
+          {/* <NavLink to="/admin" end className={navClass} onClick={() => window.innerWidth < 1024 && onClose()}>
             <Activity size={20} strokeWidth={2.5} /> Dashboard
           </NavLink>
           <NavLink to="/admin/orders" className={navClass} onClick={() => window.innerWidth < 1024 && onClose()}>
             <ShoppingBag size={20} strokeWidth={2.5} /> Orders
-          </NavLink>
+          </NavLink> */}
           <NavLink to="/admin/products" className={navClass} onClick={() => window.innerWidth < 1024 && onClose()}>
             <Package size={20} strokeWidth={2.5} /> Products
           </NavLink>

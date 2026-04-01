@@ -8,10 +8,22 @@ const PAGE_SIZE = 12;
 const GalleryAdmin = () => {
   const [allImages, setAllImages]   = useState([]);
   const [files, setFiles]           = useState([]);
+  const [previews, setPreviews]     = useState([]);
   const [caption, setCaption]       = useState('');
   const [uploading, setUploading]   = useState(false);
   const [page, setPage]             = useState(1);
   const fileInputRef = useRef(null);
+
+  // Cleanup ALL object URLs ONLY on component unmount
+  useEffect(() => {
+    return () => {
+      previews.forEach(p => {
+        if (p.length > 0 && p.startsWith('blob:')) {
+            try { URL.revokeObjectURL(p); } catch (e) {}
+        }
+      });
+    };
+  }, []); // Empty dependency array means it only runs on unmount
 
   useEffect(() => { fetchGallery(); }, []);
 
@@ -34,8 +46,35 @@ const GalleryAdmin = () => {
       toast.error('Max 6 images per batch');
       e.target.value = null;
       setFiles([]);
+      // Revoke any existing previews before clearing
+      previews.forEach(p => {
+        if (p.startsWith('blob:')) URL.revokeObjectURL(p);
+      });
+      setPreviews([]);
     } else {
+      // Revoke old previews before setting new ones
+      previews.forEach(p => {
+        if (p.startsWith('blob:')) URL.revokeObjectURL(p);
+      });
+      const newPreviews = selected.map(f => URL.createObjectURL(f));
       setFiles(selected);
+      setPreviews(newPreviews);
+    }
+  };
+
+  const removeSelectedFile = (index) => {
+    const urlToRevoke = previews[index];
+    if (urlToRevoke && urlToRevoke.startsWith('blob:')) {
+        URL.revokeObjectURL(urlToRevoke);
+    }
+    
+    const updatedFiles = files.filter((_, i) => i !== index);
+    const updatedPreviews = previews.filter((_, i) => i !== index);
+    setFiles(updatedFiles);
+    setPreviews(updatedPreviews);
+    // If empty, reset input
+    if (updatedFiles.length === 0 && fileInputRef.current) {
+        fileInputRef.current.value = null;
     }
   };
 
@@ -50,6 +89,7 @@ const GalleryAdmin = () => {
       await Promise.all(res.data.urls.map(url => api.post('/gallery', { imageUrl: url, caption })));
       toast.success(`✅ ${res.data.urls.length} image(s) added`);
       setFiles([]);
+      setPreviews([]);
       setCaption('');
       if (fileInputRef.current) fileInputRef.current.value = null;
       fetchGallery();
@@ -92,7 +132,6 @@ const GalleryAdmin = () => {
               onChange={handleFileSelect} ref={fileInputRef}
               className="w-full border-2 border-dashed border-gray-300 p-3 hover:border-theme-black transition cursor-pointer text-sm bg-gray-50"
             />
-            {files.length > 0 && <p className="text-xs text-theme-black font-bold mt-1">{files.length} file(s) selected</p>}
           </div>
           <div className="flex-1">
             <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Caption (optional)</label>
@@ -109,6 +148,27 @@ const GalleryAdmin = () => {
             {uploading ? 'Uploading…' : 'Upload Batch'}
           </button>
         </div>
+
+        {/* Selected Previews Grid */}
+        {previews.length > 0 && (
+          <div className="mt-8 grid grid-cols-3 sm:grid-cols-6 gap-4 animate-fade-in">
+             {previews.map((url, i) => (
+                <div key={i} className="relative group aspect-square border-2 border-gray-200 overflow-hidden bg-gray-50">
+                    <img src={url} className="w-full h-full object-cover" alt="Preview" />
+                    <button 
+                        type="button" 
+                        onClick={() => removeSelectedFile(i)}
+                        className="absolute top-1 right-1 bg-red-500 text-white p-1 hover:bg-red-600 shadow-xl transition-all opacity-0 group-hover:opacity-100"
+                    >
+                        <Trash2 size={12} strokeWidth={3} />
+                    </button>
+                    <div className="absolute inset-x-0 bottom-0 py-1 bg-black/60 text-[8px] font-black uppercase text-center text-white opacity-0 group-hover:opacity-100">
+                        {files[i]?.name.slice(0, 10)}...
+                    </div>
+                </div>
+             ))}
+          </div>
+        )}
       </form>
 
       {/* Grid */}

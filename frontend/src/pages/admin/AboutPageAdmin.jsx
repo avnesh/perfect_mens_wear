@@ -17,8 +17,18 @@ const AboutPageAdmin = () => {
   });
 
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Cleanup object URLs
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   useEffect(() => {
     fetchSettings();
@@ -39,6 +49,10 @@ const AboutPageAdmin = () => {
           aboutStat2Value: data.aboutStat2Value || '24/7',
           aboutStat2Label: data.aboutStat2Label || 'Personal Service',
         });
+        
+        // Sync preview with either aboutImage (new) or homeBanners[0] (legacy) or the hardcoded fallback
+        const currentImage = data.aboutImage || (data.homeBanners && data.homeBanners[0]) || 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=800&q=80';
+        setImagePreview(currentImage);
       }
     } catch (error) {
       toast.error('Failed to load settings');
@@ -67,6 +81,8 @@ const AboutPageAdmin = () => {
       await api.put('/settings', payload);
       toast.success('✅ About page updated successfully!');
       setImageFile(null);
+      // No need to revoke here as fetchSettings will update imagePreview if needed, 
+      // or we can just keep the preview if it's the same URL.
       fetchSettings();
     } catch (error) {
       toast.error('Error saving about page settings');
@@ -206,27 +222,39 @@ const AboutPageAdmin = () => {
               </h2>
             </div>
             <div className="space-y-4">
-              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-white hover:border-theme-black transition-all cursor-pointer group relative overflow-hidden">
-                {imageFile || form.aboutImage ? (
+              <label className="flex flex-col items-center justify-center w-full min-h-[300px] border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-white hover:border-theme-black transition-all cursor-pointer group relative overflow-hidden shadow-inner">
+                {imagePreview ? (
                   <img
-                    src={imageFile ? URL.createObjectURL(imageFile) : form.aboutImage}
-                    className="w-full h-full object-cover"
+                    src={imagePreview}
+                    className="w-full h-full object-contain bg-white animate-fade-in"
                     alt="About Preview"
+                    key={imagePreview} // Force re-render if URL changes
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <ImageIcon className="w-10 h-10 text-gray-400 group-hover:text-theme-black mb-3" />
+                    <ImageIcon className="w-12 h-12 text-gray-400 group-hover:text-theme-black mb-3" />
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Click to upload brand image</p>
                   </div>
                 )}
-                <input type="file" className="hidden" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} />
-                {(imageFile || form.aboutImage) && (
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setImageFile(file);
+                      setImagePreview(URL.createObjectURL(file));
+                    }
+                  }} 
+                />
+                {imagePreview && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="bg-white text-theme-black px-4 py-2 text-[10px] font-black uppercase tracking-widest shadow-lg">Change Image</span>
                   </div>
                 )}
               </label>
-              <p className="text-[10px] text-gray-400 font-medium text-center">Recommended: Square or Portrait image (1:1 or 4:5 ratio)</p>
+              <p className="text-[10px] text-gray-400 font-medium text-center italic">Supported formats: JPG, PNG, WEBP · Max 5MB</p>
             </div>
           </div>
         </div>
