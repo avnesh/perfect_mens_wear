@@ -1,7 +1,9 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
+import AnimatePage from './components/AnimatePage';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -26,47 +28,58 @@ import Settings from './pages/admin/Settings';
 import GalleryAdmin from './pages/admin/GalleryAdmin';
 import AdminOrders from './pages/admin/Orders';
 import HomepageAdmin from './pages/admin/HomepageAdmin';
+import AboutPageAdmin from './pages/admin/AboutPageAdmin';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen font-black uppercase tracking-widest text-gray-400">Authenticating...</div>;
   if (!user || (!user.isAdmin && user.isAdmin !== undefined)) return <Navigate to="/admin/login" />;
   return children;
 };
 
-function App() {
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="shop" element={<Shop />} />
-          <Route path="product/:id" element={<ProductDetail />} />
-          <Route path="gallery" element={<Gallery />} />
-          <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
-          {/* <Route path="checkout" element={<Checkout />} /> */}
+          <Route index element={<AnimatePage><Home /></AnimatePage>} />
+          <Route path="shop" element={<AnimatePage><Shop /></AnimatePage>} />
+          <Route path="product/:id" element={<AnimatePage><ProductDetail /></AnimatePage>} />
+          <Route path="gallery" element={<AnimatePage><Gallery /></AnimatePage>} />
+          <Route path="about" element={<AnimatePage><About /></AnimatePage>} />
+          <Route path="contact" element={<AnimatePage><Contact /></AnimatePage>} />
         </Route>
 
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/login" element={<AnimatePage><AdminLogin /></AnimatePage>} />
 
         <Route path="/admin" element={
           <ProtectedRoute>
             <AdminLayout />
           </ProtectedRoute>
         }>
-          <Route index element={<Dashboard />} />
-          <Route path="products" element={<Products />} />
-          <Route path="products/new" element={<ProductForm />} />
-          <Route path="products/edit/:id" element={<ProductForm />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="gallery" element={<GalleryAdmin />} />
-          <Route path="homepage" element={<HomepageAdmin />} />
+          <Route index element={<AnimatePage><Dashboard /></AnimatePage>} />
+          <Route path="products" element={<AnimatePage><Products /></AnimatePage>} />
+          <Route path="products/new" element={<AnimatePage><ProductForm /></AnimatePage>} />
+          <Route path="products/edit/:id" element={<AnimatePage><ProductForm /></AnimatePage>} />
+          <Route path="categories" element={<AnimatePage><Categories /></AnimatePage>} />
+          <Route path="orders" element={<AnimatePage><AdminOrders /></AnimatePage>} />
+          <Route path="settings" element={<AnimatePage><Settings /></AnimatePage>} />
+          <Route path="gallery" element={<AnimatePage><GalleryAdmin /></AnimatePage>} />
+          <Route path="homepage" element={<AnimatePage><HomepageAdmin /></AnimatePage>} />
+          <Route path="about" element={<AnimatePage><AboutPageAdmin /></AnimatePage>} />
         </Route>
       </Routes>
+    </AnimatePresence>
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <AnimatedRoutes />
     </BrowserRouter>
   );
 }

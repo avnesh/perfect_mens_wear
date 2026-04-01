@@ -42,3 +42,31 @@
   animation: ticker-scroll 22s linear infinite;
 }
 
+/* Custom Scrollbar for modern browsers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 transition-colors;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-theme-black;
+}
+
+/* Transitions */
+.transition-sidebar {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glass effect for mobile header */
+.header-glass {
+  @apply bg-white/80 backdrop-blur-md;
+}
+

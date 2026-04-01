@@ -3,6 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { Plus, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+};
 
 const PAGE_SIZE = 10;
 
@@ -61,23 +77,28 @@ const Products = () => {
   };
 
   return (
-    <div className="max-w-[1400px] animate-fade-in">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="max-w-[1400px]"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">
         <div>
-          <h1 className="text-4xl font-display font-black text-theme-black uppercase tracking-tight">Product Catalog</h1>
+          <h1 className="text-3xl md:text-4xl font-display font-black text-theme-black uppercase tracking-tight">Product Catalog</h1>
           <p className="mt-1 text-gray-400 font-medium">{allProducts.length} products total</p>
         </div>
         <button
           onClick={() => navigate('/admin/products/new')}
-          className="bg-theme-black text-theme-yellow px-8 py-4 flex items-center gap-3 font-black uppercase tracking-widest border-2 border-theme-black hover:bg-theme-yellow hover:text-theme-black transition-colors"
+          className="bg-theme-black text-theme-yellow px-6 md:px-8 py-3 md:py-4 flex items-center justify-center gap-3 font-black uppercase tracking-widest border-2 border-theme-black hover:bg-theme-yellow hover:text-theme-black transition-colors w-full md:w-auto"
         >
           <Plus size={20} strokeWidth={3} /> Add Product
         </button>
-      </div>
+      </motion.div>
 
       {/* Search bar */}
-      <div className="mb-6">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center gap-3">
         <input
           type="text"
           placeholder="Search by name, brand or category…"
@@ -86,7 +107,7 @@ const Products = () => {
           className="w-full md:w-80 border-2 border-gray-200 px-4 py-3 bg-gray-50 focus:bg-white focus:border-theme-black outline-none text-sm font-medium transition-colors"
         />
         {search && (
-          <span className="ml-3 text-xs text-gray-400 font-bold uppercase tracking-widest">
+          <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">
             {filtered.length} result{filtered.length !== 1 ? 's' : ''}
           </span>
         )}
@@ -110,53 +131,62 @@ const Products = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {pageItems.map((p, index) => (
-                  <tr key={p._id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-18 bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0" style={{ aspectRatio: '3/4' }}>
-                          <img
-                            src={p.images?.[0]}
-                            alt=""
-                            className="w-full h-full object-cover"
-                            onError={e => { e.target.src = 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&q=60'; }}
-                          />
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {pageItems.map((p, index) => (
+                    <motion.tr 
+                      key={p._id} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      transition={{ duration: 0.3, delay: index * 0.03 }}
+                      className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
+                    >
+                      <td className="px-6 py-4 min-w-[200px]">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-18 bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0" style={{ aspectRatio: '3/4' }}>
+                            <img
+                              src={p.images?.[0]}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              onError={e => { e.target.src = 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&q=60'; }}
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-black text-theme-black text-sm uppercase leading-tight truncate-two-lines sm:truncate-none">{p.name}</p>
+                            {p.brand && <p className="text-xs text-gray-400 font-bold mt-0.5">{p.brand}</p>}
+                            {p.isFeatured && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-theme-yellow text-theme-black text-[9px] font-black tracking-widest uppercase">
+                                Featured
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-black text-theme-black text-sm uppercase leading-snug">{p.name}</p>
-                          {p.brand && <p className="text-xs text-gray-400 font-bold mt-0.5">{p.brand}</p>}
-                          {p.isFeatured && (
-                            <span className="inline-block mt-1 px-2 py-0.5 bg-theme-yellow text-theme-black text-[9px] font-black tracking-widest uppercase">
-                              Featured
-                            </span>
-                          )}
+                      </td>
+                      <td className="px-6 py-4 font-black text-theme-black">₹{p.price}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-gray-500 uppercase tracking-wide">
+                        {p.category?.name || '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/admin/products/edit/${p._id}`)}
+                            className="p-2.5 text-gray-400 border-2 border-transparent hover:border-theme-black hover:text-theme-black bg-white shadow-sm transition-all"
+                            title="Edit"
+                          >
+                            <Edit2 size={15} strokeWidth={3} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p._id)}
+                            className="p-2.5 text-red-400 border-2 border-transparent hover:border-red-500 hover:text-red-600 hover:bg-red-50 bg-white shadow-sm transition-all"
+                            title="Delete"
+                          >
+                            <Trash2 size={15} strokeWidth={3} />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-black text-theme-black">₹{p.price}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-500 uppercase tracking-wide">
-                      {p.category?.name || '—'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end items-center gap-2">
-                        <button
-                          onClick={() => navigate(`/admin/products/edit/${p._id}`)}
-                          className="p-2.5 text-gray-400 border-2 border-transparent hover:border-theme-black hover:text-theme-black bg-white shadow-sm transition-all"
-                          title="Edit"
-                        >
-                          <Edit2 size={15} strokeWidth={3} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(p._id)}
-                          className="p-2.5 text-red-400 border-2 border-transparent hover:border-red-500 hover:text-red-600 hover:bg-red-50 bg-white shadow-sm transition-all"
-                          title="Delete"
-                        >
-                          <Trash2 size={15} strokeWidth={3} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
                 {pageItems.length === 0 && (
                   <tr>
                     <td colSpan="4" className="px-6 py-16 text-center">
@@ -219,7 +249,7 @@ const Products = () => {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

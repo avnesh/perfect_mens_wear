@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -48,58 +64,90 @@ const Orders = () => {
     }
   };
 
-  if (loading && orders.length === 0) return <div>Loading orders...</div>;
+  if (loading && orders.length === 0) return (
+    <div className="h-[50vh] flex items-center justify-center">
+      <motion.div 
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+        className="w-12 h-12 border-4 border-theme-yellow border-t-theme-black rounded-full"
+      ></motion.div>
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="max-w-[1200px] space-y-8"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-gray-100 gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-display font-black text-theme-black uppercase tracking-tight">Order Management</h1>
+          <p className="mt-1 text-gray-400 font-medium">Track and process customer orders</p>
+        </div>
+      </motion.div>
       
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <ul className="divide-y divide-gray-200">
-          {orders.map((order) => (
-            <li key={order._id} className="p-6">
-              <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-mono text-sm text-gray-500">#{order._id.slice(-6).toUpperCase()}</span>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.orderStatus)}`}>
-                      {order.orderStatus}
-                    </span>
-                    <span className="text-gray-500 text-sm">{format(new Date(order.createdAt), 'MMM dd, yyyy HH:mm')}</span>
+      <div className="bg-white border-2 border-gray-200">
+        <div className="bg-gray-50 border-b-2 border-gray-200 px-6 py-5">
+           <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Recent Orders</h3>
+        </div>
+        <motion.ul variants={containerVariants} className="divide-y divide-gray-100">
+          <AnimatePresence mode="popLayout" initial={false}>
+            {orders.map((order, idx) => (
+              <motion.li 
+                key={order._id} 
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ delay: idx * 0.05 }}
+                className="p-6"
+              >
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="font-mono text-sm text-gray-500">#{order._id.slice(-6).toUpperCase()}</span>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.orderStatus)}`}>
+                        {order.orderStatus}
+                      </span>
+                      <span className="text-gray-500 text-sm">{format(new Date(order.createdAt), 'MMM dd, yyyy HH:mm')}</span>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900">{order.customerDetails.name}</h3>
+                    <p className="text-sm text-gray-500">{order.customerDetails.phone} | {order.customerDetails.address}, {order.customerDetails.pincode}</p>
+                    
+                    <div className="mt-3">
+                      <p className="text-sm font-medium text-gray-700">Items ({order.products.length}):</p>
+                      <ul className="mt-1 text-sm text-gray-500 list-disc list-inside">
+                        {order.products.map((item, idx) => (
+                          <li key={idx}>{item.name} - Size: {item.size} x {item.qty}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900">{order.customerDetails.name}</h3>
-                  <p className="text-sm text-gray-500">{order.customerDetails.phone} | {order.customerDetails.address}, {order.customerDetails.pincode}</p>
                   
-                  <div className="mt-3">
-                    <p className="text-sm font-medium text-gray-700">Items ({order.products.length}):</p>
-                    <ul className="mt-1 text-sm text-gray-500 list-disc list-inside">
-                      {order.products.map((item, idx) => (
-                        <li key={idx}>{item.name} - Size: {item.size} x {item.qty}</li>
-                      ))}
-                    </ul>
+                  <div className="flex flex-col gap-3 text-right">
+                    <div className="text-lg font-bold text-gray-900">₹{order.totalAmount}</div>
+                    <div className="text-sm text-gray-500">Method: {order.paymentType}</div>
+                    
+                    <select 
+                      value={order.orderStatus} 
+                      onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                      className="mt-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md border"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
                   </div>
                 </div>
-                
-                <div className="flex flex-col gap-3 text-right">
-                  <div className="text-lg font-bold text-gray-900">₹{order.totalAmount}</div>
-                  <div className="text-sm text-gray-500">Method: {order.paymentType}</div>
-                  
-                  <select 
-                    value={order.orderStatus} 
-                    onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                    className="mt-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md border"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </motion.ul>
       </div>
 
       {totalPages > 1 && (
@@ -109,7 +157,7 @@ const Orders = () => {
           <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 border rounded-md disabled:opacity-50">Next</button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

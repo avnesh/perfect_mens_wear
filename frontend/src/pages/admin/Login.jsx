@@ -58,6 +58,16 @@ const Login = () => {
               Sign in
             </button>
           </div>
+          
+          <div className="text-center mt-4">
+            <button 
+              type="button" 
+              onClick={() => navigate('/')}
+              className="text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors"
+            >
+              ← Back to Website
+            </button>
+          </div>
         </form>
       </div>
     </div>

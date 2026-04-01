@@ -146,8 +146,8 @@ const ProductForm = () => {
         <Link to="/admin/products" className="p-3 bg-gray-100 hover:bg-theme-black hover:text-white transition-colors rounded-full text-theme-black cursor-pointer">
            <ArrowLeft size={24} strokeWidth={2.5}/>
         </Link>
-        <div>
-           <h1 className="text-4xl font-display font-black text-theme-black uppercase tracking-tight">
+        <div className="min-w-0">
+           <h1 className="text-3xl md:text-4xl font-display font-black text-theme-black uppercase tracking-tight truncate sm:truncate-none">
              {isEditing ? 'Edit Product' : 'New Product'}
            </h1>
            <p className="text-gray-500 font-bold tracking-widest text-xs uppercase mt-1">

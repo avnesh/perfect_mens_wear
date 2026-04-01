@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu, X, ShoppingCart, Search, Heart, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { ENABLE_ECOMMERCE } from '../config';
 import api from '../api';
@@ -72,12 +73,27 @@ const Navbar = () => {
     { name: 'Contact', path: '/contact' },
   ];
 
+  const linkVariants = {
+    wiggle: {
+      rotate: [0, -2, 2, -2, 2, 0],
+      scale: 1.1,
+      transition: { 
+        duration: 0.4,
+        ease: "easeInOut"
+      }
+    }
+  };
+
   return (
     <nav className="fixed w-full z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 text-2xl font-display font-black tracking-tighter uppercase text-theme-black">
+          <Link 
+            to="/" 
+            onClick={() => { if(location.pathname === '/') window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            className="flex items-center gap-3 text-2xl font-display font-black tracking-tighter uppercase text-theme-black"
+          >
             {settings.logo ? <img src={settings.logo} alt="Logo" className="h-10" /> : <ShoppingBag className="text-theme-yellow fill-theme-yellow" size={28} />}
             {settings.shopName}
           </Link>
@@ -85,43 +101,57 @@ const Navbar = () => {
           {/* Desktop Links (Center) */}
           <div className="hidden md:flex space-x-10 items-center">
             {navLinks.map((link) => (
-              <Link 
+              <motion.div
                 key={link.name}
-                to={link.path} 
-                className={`text-sm font-bold tracking-wide uppercase transition-all duration-300 relative group ${
-                  location.pathname === link.path 
-                    ? 'text-theme-black' 
-                    : 'text-gray-500 hover:text-theme-black'
-                }`}
+                whileHover="wiggle"
+                variants={linkVariants}
               >
-                {link.name}
-                <span className={`absolute -bottom-1 left-0 w-full h-[2px] bg-theme-yellow transform origin-left transition-transform duration-300 ${location.pathname === link.path ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
-              </Link>
+                <Link 
+                  to={link.path} 
+                  className={`text-sm font-bold tracking-wide uppercase transition-all duration-300 relative group ${
+                    location.pathname === link.path 
+                      ? 'text-theme-black' 
+                      : 'text-gray-500 hover:text-theme-black'
+                  }`}
+                >
+                  {link.name}
+                  <span className={`absolute -bottom-1 left-0 w-full h-[2px] bg-theme-yellow transform origin-left transition-transform duration-300 ${location.pathname === link.path ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+                </Link>
+              </motion.div>
             ))}
           </div>
 
           {/* Icons (Right) */}
           <div className="hidden md:flex items-center space-x-6">
-            <button 
+            <motion.button 
+              whileHover="wiggle"
+              variants={linkVariants}
               onClick={() => setShowSearch(!showSearch)} 
               className={`text-theme-black hover:text-theme-yellow transition-colors ${showSearch ? 'text-theme-yellow' : ''}`}
               aria-label="Search"
             >
               <Search size={22} strokeWidth={2} />
-            </button>
-            <Link to="/admin/login" className="text-theme-black hover:text-theme-yellow transition-colors"><User size={22} strokeWidth={2} /></Link>
+            </motion.button>
+            <motion.div whileHover="wiggle" variants={linkVariants}>
+              <Link to="/admin/login" className="text-theme-black hover:text-theme-yellow transition-colors"><User size={22} strokeWidth={2} /></Link>
+            </motion.div>
             
             {ENABLE_ECOMMERCE && (
                 <>
-                  <button className="text-theme-black hover:text-theme-yellow transition-colors"><Heart size={22} strokeWidth={2} /></button>
-                  <button onClick={() => navigate('/checkout')} className="relative p-2 text-theme-black hover:text-theme-yellow transition-colors group">
+                  <motion.button whileHover="wiggle" variants={linkVariants} className="text-theme-black hover:text-theme-yellow transition-colors"><Heart size={22} strokeWidth={2} /></motion.button>
+                  <motion.button 
+                    whileHover="wiggle"
+                    variants={linkVariants}
+                    onClick={() => navigate('/checkout')} 
+                    className="relative p-2 text-theme-black hover:text-theme-yellow transition-colors group"
+                  >
                     <ShoppingCart size={22} strokeWidth={2} />
                     {cartItemsCount > 0 && (
                       <span className="absolute top-0 right-0 inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 text-[11px] font-black text-theme-black transform translate-x-1/4 -translate-y-1/4 bg-theme-yellow rounded-full shadow-sm group-hover:scale-110 transition-transform">
                         {cartItemsCount}
                       </span>
                     )}
-                  </button>
+                  </motion.button>
                 </>
             )}
           </div>

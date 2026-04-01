@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MessageCircle, ShoppingCart, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
 import SEO from '../components/SEO';
@@ -39,8 +40,13 @@ const ProductDetail = () => {
   }, [id]);
 
   if (loading) return (
-    <div className="h-screen flex items-center justify-center">
-      <div className="w-16 h-16 border-4 border-theme-yellow border-t-theme-black rounded-full animate-spin"></div>
+    <div className="h-screen flex items-center justify-center bg-white">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ repeat: Infinity, duration: 1, repeatType: "reverse" }}
+        className="w-16 h-16 border-4 border-theme-yellow border-t-theme-black rounded-full"
+      ></motion.div>
     </div>
   );
   
@@ -54,7 +60,7 @@ const ProductDetail = () => {
   const wpLink = `https://wa.me/${wpNumber}?text=${wpText}`;
 
   return (
-    <div className="max-w-[1500px] mx-auto px-4 lg:px-8 py-12 lg:py-20 bg-white min-h-[80vh]">
+    <div className="max-w-[1500px] mx-auto px-4 lg:px-8 py-12 lg:py-20 bg-white min-h-[80vh] overflow-hidden">
       <SEO 
         title={`${product.name} | Premium Fashion`} 
         description={product.description?.substring(0, 150)} 
@@ -63,7 +69,12 @@ const ProductDetail = () => {
       <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-start">
         
         {/* Images Column */}
-        <div className="lg:col-span-7 flex flex-col-reverse md:flex-row gap-4 lg:sticky lg:top-32">
+        <motion.div 
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="lg:col-span-7 flex flex-col-reverse md:flex-row gap-4 lg:sticky lg:top-32"
+        >
           {/* Thumbnails */}
           <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto md:w-28 hide-scrollbar shrink-0">
             {product.images.map((img, idx) => (
@@ -77,17 +88,29 @@ const ProductDetail = () => {
             ))}
           </div>
           {/* Main Photo */}
-          <div className="flex-1 bg-gray-50 aspect-[3/4] overflow-hidden cursor-crosshair">
-            <img 
-              src={mainImage} 
-              alt={product.name} 
-              className="w-full h-full object-cover animate-fade-in hover:scale-150 transition-transform duration-[400ms] origin-center" 
-            />
+          <div className="flex-1 bg-gray-50 aspect-[3/4] overflow-hidden cursor-crosshair relative">
+            <AnimatePresence mode="wait">
+              <motion.img 
+                key={mainImage}
+                src={mainImage} 
+                alt={product.name} 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full object-cover hover:scale-110 transition-transform duration-700 origin-center" 
+              />
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
 
         {/* Details Column */}
-        <div className="lg:col-span-5 mt-10 lg:mt-0 pt-4 lg:pr-8">
+        <motion.div 
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="lg:col-span-5 mt-10 lg:mt-0 pt-4 lg:pr-8"
+        >
           <div className="mb-8 border-b border-gray-100 pb-8">
             <h3 className="text-sm font-bold tracking-widest text-gray-400 uppercase mb-4">{product.category?.name || 'Essential'}</h3>
             <h1 className="text-4xl md:text-5xl font-display font-black tracking-tight text-theme-black uppercase leading-none">{product.name}</h1>
@@ -192,7 +215,7 @@ const ProductDetail = () => {
                 </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, SlidersHorizontal } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/SEO';
 import ProductCard from '../components/ProductCard';
 import Pagination from '../components/Pagination';
 import api from '../api';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
@@ -96,7 +112,12 @@ const Shop = () => {
         description="Browse our extensive collection of premium clothing." 
       />
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-gray-200 pb-6 gap-4">
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={itemVariants}
+        className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-gray-200 pb-6 gap-4"
+      >
         <div>
           <h1 className="text-4xl md:text-5xl font-display font-black text-theme-black uppercase tracking-tight">Complete Gallery</h1>
           <p className="mt-2 text-gray-400 font-medium">Showing {totalItems} items</p>
@@ -107,7 +128,7 @@ const Shop = () => {
         >
           <SlidersHorizontal size={18} /> Filters
         </button>
-      </div>
+      </motion.div>
 
       <div className="flex flex-col lg:flex-row gap-12">
         {/* Filters Sidebar */}
@@ -212,32 +233,52 @@ const Shop = () => {
 
         {/* Product Grid */}
         <div className="flex-1">
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-               <div className="w-12 h-12 border-4 border-theme-yellow border-t-theme-black rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            <>
-              {products.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-6 gap-y-12">
-                  {products.map((product) => (
-                    <ProductCard key={product._id} product={product} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-32 bg-gray-50 border-2 border-dashed border-gray-200">
-                  <div className="mb-4 flex justify-center"><Search className="text-gray-300" size={48} /></div>
-                  <h3 className="text-xl font-display font-black text-gray-900 mb-2 uppercase">No matches found</h3>
-                  <p className="text-gray-500 font-medium">Try adjusting your filters to find what you're looking for.</p>
-                  <button onClick={clearFilters} className="mt-8 bg-theme-black text-theme-yellow px-8 py-4 font-bold uppercase tracking-widest hover:bg-theme-yellow hover:text-theme-black transition">
-                    Clear Filters
-                  </button>
-                </div>
-              )}
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div 
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex justify-center items-center h-64"
+              >
+                 <div className="w-12 h-12 border-4 border-theme-yellow border-t-theme-black rounded-full animate-spin"></div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`${searchQuery}-${selectedCategory}-${brand}-${size}-${page}`}
+                initial="hidden"
+                animate="visible"
+                variants={containerVariants}
+              >
+                {products.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-6 gap-y-12">
+                    {products.map((product) => (
+                      <motion.div key={product._id} variants={itemVariants}>
+                        <ProductCard product={product} />
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <motion.div 
+                    variants={itemVariants}
+                    className="text-center py-32 bg-gray-50 border-2 border-dashed border-gray-200"
+                  >
+                    <div className="mb-4 flex justify-center"><Search className="text-gray-300" size={48} /></div>
+                    <h3 className="text-xl font-display font-black text-gray-900 mb-2 uppercase">No matches found</h3>
+                    <p className="text-gray-500 font-medium">Try adjusting your filters to find what you're looking for.</p>
+                    <button onClick={clearFilters} className="mt-8 bg-theme-black text-theme-yellow px-8 py-4 font-bold uppercase tracking-widest hover:bg-theme-yellow hover:text-theme-black transition">
+                      Clear Filters
+                    </button>
+                  </motion.div>
+                )}
 
-              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-            </>
-          )}
+                <div className="mt-16">
+                  <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

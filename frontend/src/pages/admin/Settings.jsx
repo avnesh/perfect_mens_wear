@@ -66,10 +66,10 @@ const Settings = () => {
 
   return (
     <div className="max-w-[1000px] animate-fade-in">
-      <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 pb-6 border-b border-gray-100 gap-4">
          <div>
-            <h1 className="text-4xl font-display font-black text-theme-black uppercase tracking-tight">Configuration</h1>
-            <p className="mt-2 text-gray-400 font-medium">Manage global store settings</p>
+            <h1 className="text-3xl md:text-4xl font-display font-black text-theme-black uppercase tracking-tight">Configuration</h1>
+            <p className="mt-1 text-gray-400 font-medium">Manage global store settings</p>
          </div>
       </div>
 

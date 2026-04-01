@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const Product  = require('./models/Product');
 const Category = require('./models/Category');
 const Gallery  = require('./models/Gallery');
+const Setting  = require('./models/Setting');
 
 /* ── Fashion image banks (Unsplash) ── */
 const INNERWEAR_IMGS = [
@@ -120,6 +121,26 @@ async function seed() {
       galleryAdded++;
     }
     console.log(`✅ Look Book images added: ${galleryAdded} fresh images`);
+    
+    // 4) Seed settings (Upsert)
+    await Setting.findOneAndUpdate(
+      {}, 
+      {
+        $setOnInsert: {
+          shopName: 'Perfect Mens Wear',
+          aboutText: 'Premium quality innerwear, casuals & formals — curated for the modern man. We believe in creating high-quality, premium apparel that challenges the status quo. Every drop is crafted with relentless attention to detail.',
+          homeBanners: ['https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=800&q=80'],
+          contactEmail: 'contact@perfectmenswear.com',
+          contactNumber: '9988776655',
+          whatsappNumber: '919988776655',
+          address: 'Mumbai, Maharashtra, India',
+          footerTagline: 'Premium quality. Delivered with care.',
+          marqueeText: '✦ Premium Quality · Fast Enquiry · 100+ Brands · WhatsApp Us Now ✦'
+        }
+      },
+      { upsert: true, new: true }
+    );
+    console.log('✅ Default settings verified/updated');
 
     console.log('\n🎉 Seed complete! Refresh the website to see all content with pagination.');
     process.exit(0);

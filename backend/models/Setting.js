@@ -23,6 +23,16 @@ const settingSchema = mongoose.Schema(
     aboutText:      { type: String, default: 'About us text here' },
     footerTagline: { type: String, default: 'Premium quality. Delivered with care.' },
 
+    // New: About Page specialized content
+    aboutTitle:    { type: String, default: '' },
+    aboutSubtitle: { type: String, default: 'The Brand' },
+    aboutImage:    { type: String, default: '' },
+    aboutText2:    { type: String, default: 'Our style is born from the intersection of modern street culture and luxury aesthetics. We are more than a brand; we are a movement dedicated to authentic expression above all else.' },
+    aboutStat1Value: { type: String, default: '100%' },
+    aboutStat1Label: { type: String, default: 'Premium Quality' },
+    aboutStat2Value: { type: String, default: '24/7' },
+    aboutStat2Label: { type: String, default: 'Personal Service' },
+
     // Legacy single banner (kept for backward compat)
     homeBanners: { type: [String], default: [] },
 

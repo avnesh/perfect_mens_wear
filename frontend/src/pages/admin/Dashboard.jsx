@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
 import { Package, Grid, IndianRupee, ShoppingBag } from 'lucide-react';
+import { motion } from 'framer-motion';
 import {
   AreaChart,
   Area,
@@ -11,6 +12,21 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -48,20 +64,25 @@ const Dashboard = () => {
   const { summary, chartData } = stats;
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-[1400px]">
-      <div className="flex items-center justify-between mb-8">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="space-y-8 max-w-[1400px]"
+    >
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
          <div>
-            <h1 className="text-4xl font-display font-black text-theme-black uppercase tracking-tight">System Status</h1>
-            <p className="mt-2 text-gray-400 font-medium">Real-time metrics for your store performance.</p>
+            <h1 className="text-3xl md:text-4xl font-display font-black text-theme-black uppercase tracking-tight">System Status</h1>
+            <p className="mt-1 text-sm md:text-base text-gray-400 font-medium">Real-time metrics for your store performance.</p>
          </div>
-         <div className="px-4 py-2 bg-theme-yellow text-theme-black font-bold uppercase tracking-widest text-xs border-2 border-theme-black shadow-[4px_4px_0px_#111]">
+         <div className="w-fit px-4 py-2 bg-theme-yellow text-theme-black font-bold uppercase tracking-widest text-xs border-2 border-theme-black shadow-[4px_4px_0px_#111]">
             Live Mode
          </div>
-      </div>
+      </motion.div>
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 border-2 border-gray-100 flex items-center gap-6 hover:shadow-[4px_4px_0px_#111] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
+      <motion.div variants={containerVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div variants={itemVariants} className="bg-white p-6 border-2 border-gray-100 flex items-center gap-6 hover:shadow-[4px_4px_0px_#111] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
           <div className="p-4 bg-gray-50 text-theme-black rounded-lg border-2 border-gray-100 group-hover:bg-theme-black group-hover:text-theme-yellow group-hover:border-theme-black transition-colors">
             <Package size={28} strokeWidth={2.5} />
           </div>
@@ -70,9 +91,9 @@ const Dashboard = () => {
             <p className="text-3xl font-display font-black text-theme-black mt-1">{summary.products}</p>
           </div>
           <div className="absolute top-0 right-0 w-16 h-16 bg-theme-yellow rounded-bl-full -z-10 translate-x-8 -translate-y-8 opacity-0 group-hover:translate-x-0 group-hover:-translate-y-0 group-hover:opacity-100 transition-all duration-300"></div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white p-6 border-2 border-gray-100 flex items-center gap-6 hover:shadow-[4px_4px_0px_#111] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
+        <motion.div variants={itemVariants} className="bg-white p-6 border-2 border-gray-100 flex items-center gap-6 hover:shadow-[4px_4px_0px_#111] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
           <div className="p-4 bg-gray-50 text-theme-black rounded-lg border-2 border-gray-100 group-hover:bg-theme-black group-hover:text-theme-yellow group-hover:border-theme-black transition-colors">
             <Grid size={28} strokeWidth={2.5} />
           </div>
@@ -81,9 +102,9 @@ const Dashboard = () => {
             <p className="text-3xl font-display font-black text-theme-black mt-1">{summary.categories}</p>
           </div>
            <div className="absolute top-0 right-0 w-16 h-16 bg-theme-yellow rounded-bl-full -z-10 translate-x-8 -translate-y-8 opacity-0 group-hover:translate-x-0 group-hover:-translate-y-0 group-hover:opacity-100 transition-all duration-300"></div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white p-6 border-2 border-gray-100 flex items-center gap-6 hover:shadow-[4px_4px_0px_#111] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
+        <motion.div variants={itemVariants} className="bg-white p-6 border-2 border-gray-100 flex items-center gap-6 hover:shadow-[4px_4px_0px_#111] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
           <div className="p-4 bg-gray-50 text-theme-black rounded-lg border-2 border-gray-100 group-hover:bg-theme-black group-hover:text-theme-yellow group-hover:border-theme-black transition-colors">
             <ShoppingBag size={28} strokeWidth={2.5} />
           </div>
@@ -92,9 +113,9 @@ const Dashboard = () => {
             <p className="text-3xl font-display font-black text-theme-black mt-1">{summary.orders}</p>
           </div>
            <div className="absolute top-0 right-0 w-16 h-16 bg-theme-yellow rounded-bl-full -z-10 translate-x-8 -translate-y-8 opacity-0 group-hover:translate-x-0 group-hover:-translate-y-0 group-hover:opacity-100 transition-all duration-300"></div>
-        </div>
+        </motion.div>
 
-        <div className="bg-theme-black p-6 border-2 border-theme-black flex items-center gap-6 hover:shadow-[4px_4px_0px_#FFEA00] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
+        <motion.div variants={itemVariants} className="bg-theme-black p-6 border-2 border-theme-black flex items-center gap-6 hover:shadow-[4px_4px_0px_#FFEA00] hover:-translate-y-1 transition-all rounded-xl relative overflow-hidden group">
           <div className="p-4 bg-theme-yellow text-theme-black rounded-lg border-2 border-theme-yellow">
             <IndianRupee size={28} strokeWidth={3} />
           </div>
@@ -102,14 +123,14 @@ const Dashboard = () => {
             <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Gross Revenue</p>
             <p className="text-3xl font-display font-black text-white mt-1">₹{summary.revenue}</p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+      <motion.div variants={containerVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
         
         {/* Revenue Chart */}
-        <div className="bg-white p-8 border-2 border-gray-100 rounded-2xl relative">
+        <motion.div variants={itemVariants} className="bg-white p-8 border-2 border-gray-100 rounded-2xl relative">
           <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
              <div className="w-3 h-8 bg-theme-yellow"></div>
              <h2 className="text-xl font-display font-black text-theme-black uppercase tracking-wider">Revenue Insight</h2>
@@ -136,10 +157,10 @@ const Dashboard = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Orders Chart */}
-        <div className="bg-white p-8 border-2 border-gray-100 rounded-2xl relative">
+        <motion.div variants={itemVariants} className="bg-white p-8 border-2 border-gray-100 rounded-2xl relative">
           <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
              <div className="w-3 h-8 bg-theme-black"></div>
              <h2 className="text-xl font-display font-black text-theme-black uppercase tracking-wider">Order Volume</h2>
@@ -166,10 +187,10 @@ const Dashboard = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

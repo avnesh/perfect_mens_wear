@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
 import SEO from '../components/SEO';
 import Pagination from '../components/Pagination';
 import { Camera } from 'lucide-react';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.9, y: 20 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
 
 const ITEMS_PER_PAGE = 12;
 
@@ -32,7 +48,12 @@ const Gallery = () => {
     <div className="max-w-[1500px] mx-auto px-4 lg:px-8 py-12 md:py-20 bg-white min-h-[80vh]">
       <SEO title="Look Book | Premium Fashion" description="Browse our curated visual lookbook." />
       
-      <div className="text-center mb-16 border-b border-gray-100 pb-12">
+      <motion.div 
+        initial="hidden" 
+        animate="visible" 
+        variants={itemVariants} 
+        className="text-center mb-16 border-b border-gray-100 pb-12"
+      >
         <div className="inline-flex items-center justify-center p-4 bg-theme-black text-theme-yellow rounded-full mb-6 relative">
           <Camera size={40} strokeWidth={1.5} />
           <div className="absolute top-0 right-0 w-3 h-3 bg-[#25D366] rounded-full animate-ping"></div>
@@ -44,7 +65,7 @@ const Gallery = () => {
           Curated styles &amp; inspirations
           {allImages.length > 0 && <span className="ml-2 text-theme-yellow">— {allImages.length} pieces</span>}
         </p>
-      </div>
+      </motion.div>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -52,10 +73,23 @@ const Gallery = () => {
         </div>
       ) : (
         <>
+        <AnimatePresence mode="wait">
           {images.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-5">
+            <motion.div 
+              key={page}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: false, amount: 0.1 }}
+              exit="hidden"
+              variants={containerVariants}
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-5"
+            >
               {images.map(img => (
-                <div key={img._id} className="relative group overflow-hidden bg-gray-100 aspect-square border-4 border-white shadow-md hover:shadow-xl transition-shadow duration-300">
+                <motion.div 
+                  key={img._id} 
+                  variants={itemVariants}
+                  className="relative group overflow-hidden bg-gray-100 aspect-square border-4 border-white shadow-md hover:shadow-xl transition-shadow duration-300"
+                >
                   <img
                     src={img.imageUrl}
                     alt={img.caption || 'Lookbook entry'}
@@ -67,14 +101,19 @@ const Gallery = () => {
                       <p className="text-theme-yellow font-bold uppercase tracking-widest text-xs drop-shadow-md line-clamp-1">{img.caption}</p>
                     </div>
                   )}
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
-            <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200"
+            >
               <p className="text-gray-500 font-bold tracking-widest uppercase">No inspiration items published yet.</p>
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>

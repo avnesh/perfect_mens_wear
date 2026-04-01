@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Mail, Phone, ArrowRight, Instagram, Facebook, Twitter } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../api';
 
+const linkVariants = {
+  wiggle: {
+    rotate: [0, -2, 2, -2, 2, 0],
+    scale: 1.1,
+    transition: { 
+      duration: 0.4,
+      ease: "easeInOut"
+    }
+  }
+};
 
 const Footer = () => {
   const [settings, setSettings] = useState(null);
@@ -36,30 +47,39 @@ const Footer = () => {
 
             {/* Contact pills */}
             <div className="space-y-3">
-              <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer"
-                className="flex items-center gap-3 text-gray-400 hover:text-theme-yellow transition-colors text-sm group">
+              <motion.a 
+                whileHover="wiggle"
+                variants={linkVariants}
+                href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer"
+                className="flex items-center gap-3 text-gray-400 hover:text-theme-yellow transition-colors text-sm group w-fit">
                 <span className="w-8 h-8 bg-white/5 group-hover:bg-theme-yellow/10 flex items-center justify-center shrink-0 transition-colors">
                   <MapPin size={14} className="text-theme-yellow" />
                 </span>
                 <span>{address}</span>
-              </a>
-              <a href={`mailto:${email}`}
-                className="flex items-center gap-3 text-gray-400 hover:text-theme-yellow transition-colors text-sm group">
+              </motion.a>
+              <motion.a 
+                whileHover="wiggle"
+                variants={linkVariants}
+                href={`mailto:${email}`}
+                className="flex items-center gap-3 text-gray-400 hover:text-theme-yellow transition-colors text-sm group w-fit">
                 <span className="w-8 h-8 bg-white/5 group-hover:bg-theme-yellow/10 flex items-center justify-center shrink-0 transition-colors">
                   <Mail size={14} className="text-theme-yellow" />
                 </span>
                 <span>{email}</span>
-              </a>
+              </motion.a>
 
               {/* ── Phone number (contactNumber) ── */}
               {contactNum && (
-                <a href={`tel:+91${contactNum}`}
-                  className="flex items-center gap-3 text-gray-400 hover:text-theme-yellow transition-colors text-sm group">
+                <motion.a 
+                  whileHover="wiggle"
+                  variants={linkVariants}
+                  href={`tel:+91${contactNum}`}
+                  className="flex items-center gap-3 text-gray-400 hover:text-theme-yellow transition-colors text-sm group w-fit">
                   <span className="w-8 h-8 bg-white/5 group-hover:bg-theme-yellow/10 flex items-center justify-center shrink-0 transition-colors">
                     <Phone size={14} className="text-theme-yellow" />
                   </span>
                   <span>+91 {contactNum}</span>
-                </a>
+                </motion.a>
               )}
 
             </div>
@@ -80,11 +100,13 @@ const Footer = () => {
                 { label: 'Contact',   to: '/contact' },
               ].map(({ label, to }) => (
                 <li key={to}>
-                  <Link to={to}
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-theme-yellow transition-colors font-medium group">
-                    <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-theme-yellow" />
-                    {label}
-                  </Link>
+                  <motion.div whileHover="wiggle" variants={linkVariants} className="w-fit">
+                    <Link to={to}
+                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-theme-yellow transition-colors font-medium group">
+                      <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-theme-yellow" />
+                      {label}
+                    </Link>
+                  </motion.div>
                 </li>
               ))}
             </ul>
@@ -103,11 +125,13 @@ const Footer = () => {
                 'Accessories',
               ].map(cat => (
                 <li key={cat}>
-                  <Link to={`/shop`}
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-theme-yellow transition-colors font-medium group">
-                    <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-theme-yellow" />
-                    {cat}
-                  </Link>
+                  <motion.div whileHover="wiggle" variants={linkVariants} className="w-fit">
+                    <Link to={`/shop`}
+                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-theme-yellow transition-colors font-medium group">
+                      <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-theme-yellow" />
+                      {cat}
+                    </Link>
+                  </motion.div>
                 </li>
               ))}
             </ul>
@@ -118,10 +142,12 @@ const Footer = () => {
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">Top Brands</h4>
             <div className="flex flex-wrap gap-2">
               {['Jockey', 'U.S. Polo', 'XYXX', 'Lux', 'Dollar', 'Van Heusen', 'Arrow', 'Peter England', 'Raymond', 'Allen Solly', 'Louis Philippe', 'Puma'].map(brand => (
-                <Link key={brand} to="/shop"
-                  className="px-3 py-1.5 border border-white/10 text-gray-500 text-[11px] font-bold uppercase tracking-widest hover:border-theme-yellow hover:text-theme-yellow transition-colors">
-                  {brand}
-                </Link>
+                <motion.div key={brand} whileHover="wiggle" variants={linkVariants}>
+                  <Link to="/shop"
+                    className="px-3 py-1.5 border border-white/10 text-gray-500 text-[11px] font-bold uppercase tracking-widest hover:border-theme-yellow hover:text-theme-yellow transition-colors block">
+                    {brand}
+                  </Link>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -136,9 +162,9 @@ const Footer = () => {
             © {new Date().getFullYear()} {shopName}. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <span className="text-xs text-gray-600 font-bold uppercase tracking-widest hover:text-gray-400 cursor-pointer transition-colors">Privacy Policy</span>
+            <motion.span whileHover="wiggle" variants={linkVariants} className="text-xs text-gray-600 font-bold uppercase tracking-widest hover:text-gray-400 cursor-pointer transition-colors">Privacy Policy</motion.span>
             <span className="text-gray-700">·</span>
-            <span className="text-xs text-gray-600 font-bold uppercase tracking-widest hover:text-gray-400 cursor-pointer transition-colors">Terms of Service</span>
+            <motion.span whileHover="wiggle" variants={linkVariants} className="text-xs text-gray-600 font-bold uppercase tracking-widest hover:text-gray-400 cursor-pointer transition-colors">Terms of Service</motion.span>
           </div>
         </div>
       </div>
